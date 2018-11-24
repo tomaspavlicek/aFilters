@@ -13,8 +13,8 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "PluginProcessor.h"
 #include "Biquad.h"
-#include "processing.h"
 #include <complex>
+#include "Filterz.h"
 
 #define N 1024
 #define NN 3
@@ -32,24 +32,16 @@ public:
     //==============================================================================
     void paint (Graphics&) override;
 	void resized() override;
-	void draw_spect(Graphics & g, Rectangle<int> bounds, Biquad filter1, Biquad filter2, Biquad filter3, Biquad filter4, Slider * sl11, Slider * sl12, Slider * sl13, Slider * sl21, Slider * sl22, Slider * sl23, Slider * sl31, Slider * sl32, Slider * sl33, Slider * sl41, Slider * sl42, Slider * sl43);
+	void draw_spect(Graphics & g, Rectangle<int> bounds, Filterz filterz, Slider * sl11, Slider * sl12, Slider * sl13, Slider * sl21, Slider * sl22, Slider * sl23, Slider * sl31, Slider * sl32, Slider * sl33, Slider * sl41, Slider * sl42, Slider * sl43);
 
 private:
-	FreqVec fv = FreqVec(N, 20, 20000);
 	Rectangle<int> spect1_offset;
 	Rectangle<int> spect2_offset;
+	Filterz filterz1 = Filterz(48000);
+	Filterz filterz2 = Filterz(48000);
 
-	Biquad Filter1 = Biquad();
-	Biquad Filter2 = Biquad();
-	Biquad Filter3 = Biquad();
-	Biquad Filter4 = Biquad();
-	Biquad Filter5 = Biquad();
-	Biquad Filter6 = Biquad();
-	Biquad Filter7 = Biquad();
-	Biquad Filter8 = Biquad();
-
-	int tbw = 120;
-	int tbh = 60;
+	int tbw = 80;
+	int tbh = 40;
 	typedef AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
 	AudioProcessorValueTreeState& valueTreeState;
     AFiltersAudioProcessor& processor;
@@ -78,7 +70,6 @@ private:
 	Slider s81;
 	Slider s82;
 	Slider s83;
-
 	Slider s_cross;
 	Slider s_first;
 	Slider s_second;
@@ -108,19 +99,23 @@ private:
 	std::unique_ptr<SliderAttachment> sa81;
 	std::unique_ptr<SliderAttachment> sa82;
 	std::unique_ptr<SliderAttachment> sa83;
-
 	std::unique_ptr<SliderAttachment> sa_cross;
 	std::unique_ptr<SliderAttachment> sa_first;
 	std::unique_ptr<SliderAttachment> sa_second;
 
+	Label filterTypeLabel1;
+	Label filterTypeLabel2;
+	ComboBox filterTypeCB1;
+	ComboBox filterTypeCB2;
+	TextButton filterTypeButt1;
+	TextButton filterTypeButt2;
 
+	void buttonClicked(Button* butt);
+
+	void setupFilterTypeCB(ComboBox *comboBox);
 	Rectangle<int> set_filter_bounds(Rectangle<int> area, Slider* s1, Slider* s2, Slider* s3, Slider* s4, Slider* s5, Slider* s6, Slider* s7, Slider* s8, Slider* s9, Slider* s10, Slider* s11, Slider* s12);
-	void AFiltersAudioProcessorEditor::setup_slider(Slider *s, const char* sn, std::unique_ptr<SliderAttachment>* sa);
-	void AFiltersAudioProcessorEditor::setup_slider2(Slider * s, const char * sn, std::unique_ptr<SliderAttachment>* sa, Slider::SliderStyle slider_style);
+	void AFiltersAudioProcessorEditor::setup_slider(Slider * s, const char * sn, std::unique_ptr<SliderAttachment>* sa, Slider::SliderStyle slider_style);
+	void AFiltersAudioProcessorEditor::setup_slider(Slider * s, const char * sn, std::unique_ptr<SliderAttachment>* sa);
 	void sliderValueChanged(Slider* slider) override;
-    
-
-	//Rectangle<int> spectra1Bounds = Rectangle<int>(0,0,0,0);
-
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AFiltersAudioProcessorEditor)
 };

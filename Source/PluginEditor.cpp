@@ -13,7 +13,7 @@
 #include <complex>
 #include <math.h>
 #include <iostream>
-#include "processing.h"
+
 
 
 
@@ -25,9 +25,9 @@ AFiltersAudioProcessorEditor::AFiltersAudioProcessorEditor (AFiltersAudioProcess
     // editor's size to whatever you need it to be.
 	
 	
-	setup_slider2(&s_cross, "s_cross", &sa_cross, Slider::LinearVertical);
-	setup_slider2(&s_first, "s_first", &sa_first, Slider::LinearVertical);
-	setup_slider2(&s_second, "s_second", &sa_second, Slider::LinearVertical);
+	setup_slider(&s_cross, "s_cross", &sa_cross, Slider::LinearVertical);
+	setup_slider(&s_first, "s_first", &sa_first, Slider::LinearVertical);
+	setup_slider(&s_second, "s_second", &sa_second, Slider::LinearVertical);
 	setup_slider(&s11, "sl11", &sa11);
 	setup_slider(&s12, "sl12", &sa12);
 	setup_slider(&s13, "sl13", &sa13);
@@ -52,6 +52,14 @@ AFiltersAudioProcessorEditor::AFiltersAudioProcessorEditor (AFiltersAudioProcess
 	setup_slider(&s81, "sl81", &sa81);
 	setup_slider(&s82, "sl82", &sa82);
 	setup_slider(&s83, "sl83", &sa83);
+	setupFilterTypeCB(&filterTypeCB1);
+	setupFilterTypeCB(&filterTypeCB2);
+	filterTypeLabel1.setText(filterTypeCB1.getText(), sendNotificationAsync);
+	filterTypeLabel2.setText(filterTypeCB2.getText(), sendNotificationAsync);
+	filterTypeButt1.setButtonText("Apply");
+	filterTypeButt2.setButtonText("Apply");
+	filterTypeButt1.onClick = [this] { buttonClicked(&filterTypeButt1); };
+	filterTypeButt2.onClick = [this] { buttonClicked(&filterTypeButt2); };
 
 	addAndMakeVisible(&s11);
 	addAndMakeVisible(&s12);
@@ -80,8 +88,16 @@ AFiltersAudioProcessorEditor::AFiltersAudioProcessorEditor (AFiltersAudioProcess
 	addAndMakeVisible(&s_cross);
 	addAndMakeVisible(&s_first);
 	addAndMakeVisible(&s_second);
+	addAndMakeVisible(&filterTypeLabel1);
+	addAndMakeVisible(&filterTypeLabel2);
+	addAndMakeVisible(&filterTypeCB1);
+	addAndMakeVisible(&filterTypeCB2);
+	addAndMakeVisible(&filterTypeButt1);
+	addAndMakeVisible(&filterTypeButt2);
+
 	setSize(1800, 800);
 	setResizable(true, true);
+	
 }
 
 AFiltersAudioProcessorEditor::~AFiltersAudioProcessorEditor()
@@ -95,8 +111,8 @@ void AFiltersAudioProcessorEditor::paint (Graphics& g)
     // (Our component is opaque, so we must completely fill the background with a solid colour)
 	g.fillAll(Colours::black);
 	g.setColour(Colours::cyan);
-	draw_spect(g, spect1_offset, Filter1, Filter2, Filter3, Filter4, &s11, &s12, &s13, &s21, &s22, &s23, &s31, &s32, &s33, &s41, &s42, &s43);
-	draw_spect(g, spect2_offset, Filter5, Filter6, Filter7, Filter8, &s51, &s52, &s53, &s61, &s62, &s63, &s71, &s72, &s73, &s81, &s82, &s83);
+	draw_spect(g, spect1_offset, filterz1, &s11, &s12, &s13, &s21, &s22, &s23, &s31, &s32, &s33, &s41, &s42, &s43);
+	draw_spect(g, spect2_offset, filterz2, &s51, &s52, &s53, &s61, &s62, &s63, &s71, &s72, &s73, &s81, &s82, &s83);
 
 }
 
@@ -104,7 +120,14 @@ void AFiltersAudioProcessorEditor::resized()
 {
 	auto area = getLocalBounds();
 	auto weight_slider_width = area.getWidth() / 15;
-	s_cross.setBounds(area.removeFromLeft(weight_slider_width));
+	auto xarea = area.removeFromLeft(weight_slider_width);
+	filterTypeLabel1.setBounds(xarea.removeFromTop(tbh));
+	filterTypeCB1.setBounds(xarea.removeFromTop(tbh));
+	filterTypeButt1.setBounds(xarea.removeFromTop(tbh));
+	s_cross.setBounds(xarea.removeFromTop(xarea.getHeight()-3*tbh));
+	filterTypeButt2.setBounds(xarea.removeFromTop(tbh));
+	filterTypeCB2.setBounds(xarea.removeFromTop(tbh));
+	filterTypeLabel2.setBounds(xarea);
 	auto weight_sliders_area = area.removeFromLeft(weight_slider_width);
 	s_first.setBounds(weight_sliders_area.removeFromTop(weight_sliders_area.getHeight() / 2));
 	s_second.setBounds(weight_sliders_area);
@@ -113,40 +136,42 @@ void AFiltersAudioProcessorEditor::resized()
 	
 }
 
-void AFiltersAudioProcessorEditor::draw_spect(Graphics& g, Rectangle<int> bounds, Biquad filter1, Biquad filter2, Biquad filter3, Biquad filter4, Slider* sl11, Slider* sl12, Slider* sl13, Slider* sl21, Slider* sl22, Slider* sl23, Slider* sl31, Slider* sl32, Slider* sl33, Slider* sl41, Slider* sl42, Slider* sl43)
+void AFiltersAudioProcessorEditor::draw_spect(Graphics& g, Rectangle<int> bounds, Filterz filterz, Slider* sl11, Slider* sl12, Slider* sl13, Slider* sl21, Slider* sl22, Slider* sl23, Slider* sl31, Slider* sl32, Slider* sl33, Slider* sl41, Slider* sl42, Slider* sl43)
 {
-	const int Fs = 48000;
-	const float Fs_inv = 1 / Fs;
-	double spect1[N] = { 0 };
-
-	filter1.setBiquad(bq_type_lowshelf, sl12->getValue() * Fs_inv, sl13->getValue(), sl11->getValue());
-	compute_spectrum(spect1, fv.get_p_freq_vec(), filter1.getCoefs());
-	filter2.setBiquad(bq_type_peak, sl22->getValue() * Fs_inv, sl23->getValue(), sl21->getValue());
-	compute_spectrum(spect1, fv.get_p_freq_vec(), filter2.getCoefs());
-	filter3.setBiquad(bq_type_peak, sl32->getValue() * Fs_inv, sl33->getValue(), sl31->getValue());
-	compute_spectrum(spect1, fv.get_p_freq_vec(), filter3.getCoefs());
-	filter4.setBiquad(bq_type_highshelf, sl42->getValue() * Fs_inv, sl43->getValue(), sl41->getValue());
-	compute_spectrum(spect1, fv.get_p_freq_vec(), filter4.getCoefs());
-
-
-	float x = bounds.getTopLeft().getX();
-	float y = bounds.getCentre().getY();
-	Point<float> x_tmp;
-	Path spectrum1;
-	int gain{ 3 };
-	spectrum1.startNewSubPath(x , y + gain * spect1[0]);
-	for (size_t i = 1; i < N; i++) {
-		x_tmp.setX(x + i);
-		x_tmp.setY(y + gain * spect1[i]);
-		spectrum1.lineTo(x_tmp);
-	}
-	g.strokePath(spectrum1, PathStrokeType(4));
+	filterz.setBiquad(0, sl12->getValue(), sl13->getValue(), sl11->getValue());
+	filterz.setBiquad(1, sl22->getValue(), sl23->getValue(), sl21->getValue());
+	filterz.setBiquad(2, sl32->getValue(), sl33->getValue(), sl31->getValue());
+	filterz.setBiquad(3, sl42->getValue(), sl43->getValue(), sl41->getValue());
+	g.strokePath(filterz.get_spectrum(bounds), PathStrokeType(4));
 }
 
 void AFiltersAudioProcessorEditor::sliderValueChanged(Slider* slider)
 {
-	
 	repaint();
+}
+
+void AFiltersAudioProcessorEditor::buttonClicked(Button * butt)
+{
+	if (butt == &filterTypeButt1 && fabs(s_cross.getValue() - 1.0) < 0.0001)
+	{
+		filterTypeLabel1.setText(filterTypeCB1.getText(), sendNotificationAsync);
+		filterz1.setMode(filterTypeCB1.getSelectedItemIndex()-1);
+	}
+
+	if (butt == &filterTypeButt2 && s_cross.getValue() < 0.0001)
+	{
+		filterTypeLabel2.setText(filterTypeCB2.getText(), sendNotificationAsync);
+		filterz2.setMode(filterTypeCB2.getSelectedItemIndex()-1);
+	}
+
+}
+
+void AFiltersAudioProcessorEditor::setupFilterTypeCB(ComboBox* comboBox)
+{
+	comboBox->addItem("Equalizer", 1);
+	comboBox->addItem("4pFilter", 2);
+	comboBox->setSelectedId(1);
+
 }
 
 Rectangle<int> AFiltersAudioProcessorEditor::set_filter_bounds(Rectangle<int> area, Slider* s1, Slider* s2, Slider* s3, Slider* s4, Slider* s5, Slider* s6, Slider* s7, Slider* s8, Slider* s9, Slider* s10, Slider* s11, Slider* s12)
@@ -179,7 +204,8 @@ void AFiltersAudioProcessorEditor::setup_slider(Slider *s, const char* sn, std::
 	s->addListener(this);
 }
 
-void AFiltersAudioProcessorEditor::setup_slider2(Slider *s, const char* sn, std::unique_ptr<SliderAttachment>* sa, Slider::SliderStyle slider_style)
+
+void AFiltersAudioProcessorEditor::setup_slider(Slider *s, const char* sn, std::unique_ptr<SliderAttachment>* sa, Slider::SliderStyle slider_style)
 {
 	sa->reset(new SliderAttachment(this->valueTreeState, sn, *s));
 	s->setSliderStyle(slider_style);

@@ -81,6 +81,15 @@ void Biquad::calcBiquad(void) {
 		b2 = (1 - K / Q + K * K) * norm;
 		break;
 
+	case bq_type_lowpass2:
+		norm = 1 / (1 + K / Q + K * K);
+		a0 = norm;
+		a1 = 2 * norm;
+		a2 = norm;
+		b1 = (K / Q - 2) * norm;
+		b2 = (1 + K / Q + K * K) * norm;
+		break;
+
 	case bq_type_highpass:
 		norm = 1 / (1 + K / Q + K * K);
 		a0 = 1 * norm;

@@ -209,7 +209,7 @@ void AFiltersAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
 		filtereenos[filter_offset + 4].setBiquad(bq_type_lowshelf, *parameters.getRawParameterValue("sl52") / Fs, *parameters.getRawParameterValue("sl53"), *parameters.getRawParameterValue("sl51"));
 		filtereenos[filter_offset + 5].setBiquad(bq_type_peak, *parameters.getRawParameterValue("sl62") / Fs, *parameters.getRawParameterValue("sl63"), *parameters.getRawParameterValue("sl61"));
 		filtereenos[filter_offset + 6].setBiquad(bq_type_peak, *parameters.getRawParameterValue("sl72") / Fs, *parameters.getRawParameterValue("sl73"), *parameters.getRawParameterValue("sl71"));
-		filtereenos[filter_offset + 7].setBiquad(bq_type_highshelf, *parameters.getRawParameterValue("sl82") / Fs, *parameters.getRawParameterValue("sl83"), *parameters.getRawParameterValue("sl81"));
+		filtereenos[filter_offset + 7].setBiquad(bq_type_highpass, *parameters.getRawParameterValue("sl82") / Fs, *parameters.getRawParameterValue("sl83"), *parameters.getRawParameterValue("sl81"));
 	}
 	float fw1 = *parameters.getRawParameterValue("s_first");
 	float fw2 = *parameters.getRawParameterValue("s_second");

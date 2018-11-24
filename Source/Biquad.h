@@ -27,7 +27,8 @@ enum {
 	bq_type_notch,
 	bq_type_peak,
 	bq_type_lowshelf,
-	bq_type_highshelf
+	bq_type_highshelf,
+	bq_type_lowpass2
 };
 
 class Biquad {
@@ -46,7 +47,6 @@ public:
 
 protected:
 	void calcBiquad(void);
-
 	int type;
 	double a0, a1, a2, b1, b2;
 	double Fc, Q, peakGain;
