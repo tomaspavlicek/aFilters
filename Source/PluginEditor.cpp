@@ -98,6 +98,8 @@ AFiltersAudioProcessorEditor::AFiltersAudioProcessorEditor (AFiltersAudioProcess
 	setSize(1800, 800);
 	setResizable(true, true);
 	
+	filterz1.setMode(filterTypeCB1.getSelectedItemIndex() - 1);
+	filterz2.setMode(filterTypeCB2.getSelectedItemIndex() - 1);
 }
 
 AFiltersAudioProcessorEditor::~AFiltersAudioProcessorEditor()
@@ -111,8 +113,8 @@ void AFiltersAudioProcessorEditor::paint (Graphics& g)
     // (Our component is opaque, so we must completely fill the background with a solid colour)
 	g.fillAll(Colours::black);
 	g.setColour(Colours::cyan);
-	draw_spect(g, spect1_offset, filterz1, &s11, &s12, &s13, &s21, &s22, &s23, &s31, &s32, &s33, &s41, &s42, &s43);
-	draw_spect(g, spect2_offset, filterz2, &s51, &s52, &s53, &s61, &s62, &s63, &s71, &s72, &s73, &s81, &s82, &s83);
+	draw_spect(g, spect1_offset, filter1, &s11, &s12, &s13, &s21, &s22, &s23, &s31, &s32, &s33, &s41, &s42, &s43);
+	draw_spect(g, spect2_offset, filter2, &s51, &s52, &s53, &s61, &s62, &s63, &s71, &s72, &s73, &s81, &s82, &s83);
 
 }
 
@@ -136,12 +138,12 @@ void AFiltersAudioProcessorEditor::resized()
 	
 }
 
-void AFiltersAudioProcessorEditor::draw_spect(Graphics& g, Rectangle<int> bounds, Filterz filterz, Slider* sl11, Slider* sl12, Slider* sl13, Slider* sl21, Slider* sl22, Slider* sl23, Slider* sl31, Slider* sl32, Slider* sl33, Slider* sl41, Slider* sl42, Slider* sl43)
+void AFiltersAudioProcessorEditor::draw_spect(Graphics& g, Rectangle<int> bounds, Equalizer filterz, Slider* sl11, Slider* sl12, Slider* sl13, Slider* sl21, Slider* sl22, Slider* sl23, Slider* sl31, Slider* sl32, Slider* sl33, Slider* sl41, Slider* sl42, Slider* sl43)
 {
-	filterz.setBiquad(0, sl12->getValue(), sl13->getValue(), sl11->getValue());
-	filterz.setBiquad(1, sl22->getValue(), sl23->getValue(), sl21->getValue());
-	filterz.setBiquad(2, sl32->getValue(), sl33->getValue(), sl31->getValue());
-	filterz.setBiquad(3, sl42->getValue(), sl43->getValue(), sl41->getValue());
+	filterz.set_biquad(0, sl12->getValue(), sl13->getValue(), sl11->getValue());
+	filterz.set_biquad(1, sl22->getValue(), sl23->getValue(), sl21->getValue());
+	filterz.set_biquad(2, sl32->getValue(), sl33->getValue(), sl31->getValue());
+	filterz.set_biquad(3, sl42->getValue(), sl43->getValue(), sl41->getValue());
 	g.strokePath(filterz.get_spectrum(bounds), PathStrokeType(4));
 }
 
@@ -161,7 +163,11 @@ void AFiltersAudioProcessorEditor::buttonClicked(Button * butt)
 	if (butt == &filterTypeButt2 && s_cross.getValue() < 0.0001)
 	{
 		filterTypeLabel2.setText(filterTypeCB2.getText(), sendNotificationAsync);
-		filterz2.setMode(filterTypeCB2.getSelectedItemIndex()-1);
+		filterz2.setMode(1);
+		//s11.setVisible(false);
+		//NormalisableRange<float> r = NormalisableRange<float>(1.1f, 2.0f, 0.01f, 0.2, false);
+		//s53.setRange(1.1f, 2.0f);
+		repaint();
 	}
 
 }
@@ -169,7 +175,7 @@ void AFiltersAudioProcessorEditor::buttonClicked(Button * butt)
 void AFiltersAudioProcessorEditor::setupFilterTypeCB(ComboBox* comboBox)
 {
 	comboBox->addItem("Equalizer", 1);
-	comboBox->addItem("4pFilter", 2);
+	comboBox->addItem("Linked", 2);
 	comboBox->setSelectedId(1);
 
 }

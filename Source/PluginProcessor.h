@@ -63,14 +63,6 @@ private:
 	const int number_of_filters = 8;
 	AudioProcessorValueTreeState parameters;
 	std::vector<Biquad> filtereenos;
-	Biquad lsFilter1 = Biquad();
-	Biquad pFilter11 = Biquad();
-	Biquad pFilter12 = Biquad();
-	Biquad hsFilter1 = Biquad();
-	Biquad lsFilter2 = Biquad();
-	Biquad pFilter21 = Biquad();
-	Biquad pFilter22 = Biquad();
-	Biquad hsFilter2 = Biquad();
 	float tmp;
 	float in;
 	MidiHandl mh;

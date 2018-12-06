@@ -15,6 +15,7 @@
 #include "Biquad.h"
 #include <complex>
 #include "Filterz.h"
+#include "Equalizer.h"
 
 #define N 1024
 #define NN 3
@@ -32,11 +33,13 @@ public:
     //==============================================================================
     void paint (Graphics&) override;
 	void resized() override;
-	void draw_spect(Graphics & g, Rectangle<int> bounds, Filterz filterz, Slider * sl11, Slider * sl12, Slider * sl13, Slider * sl21, Slider * sl22, Slider * sl23, Slider * sl31, Slider * sl32, Slider * sl33, Slider * sl41, Slider * sl42, Slider * sl43);
+	void draw_spect(Graphics & g, Rectangle<int> bounds, Equalizer filterz, Slider * sl11, Slider * sl12, Slider * sl13, Slider * sl21, Slider * sl22, Slider * sl23, Slider * sl31, Slider * sl32, Slider * sl33, Slider * sl41, Slider * sl42, Slider * sl43);
 
 private:
 	Rectangle<int> spect1_offset;
 	Rectangle<int> spect2_offset;
+	Equalizer filter1 = Equalizer(48000);
+	Equalizer filter2 = Equalizer(48000);
 	Filterz filterz1 = Filterz(48000);
 	Filterz filterz2 = Filterz(48000);
 
