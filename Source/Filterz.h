@@ -38,9 +38,9 @@ private:
 	void compute_spectrum(std::tuple<double, double, double, double, double> coefs);
 	std::complex<double> polyval(double *p, int n, std::complex<double> x);
 	Point<float> x_tmp;
-	Path spectrum_path;
 	int gain{ 3 };
 	int attenuation = -60;
+	Path spectrum_path;
 
 	int F1;
 	int F2;

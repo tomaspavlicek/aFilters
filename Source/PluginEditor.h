@@ -14,8 +14,10 @@
 #include "PluginProcessor.h"
 #include "Biquad.h"
 #include <complex>
-#include "Filterz.h"
+//#include "Filterz.h"
 #include "Equalizer.h"
+#include "LinkedFilter.h"
+#include <vector>
 
 #define N 1024
 #define NN 3
@@ -33,15 +35,19 @@ public:
     //==============================================================================
     void paint (Graphics&) override;
 	void resized() override;
-	void draw_spect(Graphics & g, Rectangle<int> bounds, Equalizer filterz, Slider * sl11, Slider * sl12, Slider * sl13, Slider * sl21, Slider * sl22, Slider * sl23, Slider * sl31, Slider * sl32, Slider * sl33, Slider * sl41, Slider * sl42, Slider * sl43);
+	void draw_spect(Graphics & g, Rectangle<int> bounds, FilterBaseClass * filter, Slider * sl11, Slider * sl12, Slider * sl13, Slider * sl21, Slider * sl22, Slider * sl23, Slider * sl31, Slider * sl32, Slider * sl33, Slider * sl41, Slider * sl42, Slider * sl43);
 
 private:
 	Rectangle<int> spect1_offset;
 	Rectangle<int> spect2_offset;
-	Equalizer filter1 = Equalizer(48000);
-	Equalizer filter2 = Equalizer(48000);
-	Filterz filterz1 = Filterz(48000);
-	Filterz filterz2 = Filterz(48000);
+
+	int Fs = 48000;
+	Equalizer Eq1 = Equalizer(Fs);
+	Equalizer Eq2 = Equalizer(Fs);
+	LinkedFilter LF1 = LinkedFilter(Fs);
+	LinkedFilter LF2 = LinkedFilter(Fs);
+	FilterBaseClass * filter1;
+	FilterBaseClass * filter2;
 
 	int tbw = 80;
 	int tbh = 40;
@@ -114,6 +120,7 @@ private:
 	TextButton filterTypeButt2;
 
 	void buttonClicked(Button* butt);
+	void setFilterTypes();
 
 	void setupFilterTypeCB(ComboBox *comboBox);
 	Rectangle<int> set_filter_bounds(Rectangle<int> area, Slider* s1, Slider* s2, Slider* s3, Slider* s4, Slider* s5, Slider* s6, Slider* s7, Slider* s8, Slider* s9, Slider* s10, Slider* s11, Slider* s12);

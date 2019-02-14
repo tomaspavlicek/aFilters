@@ -1,12 +1,17 @@
 #include "Filter.h"
 
-Filter::Filter(int Fs):freqVec(spectrum_length, 20, 20000)
+FilterBaseClass::FilterBaseClass(int Fs):freqVec(spectrum_length, 20, 20000)
 {
+	this->Fs = Fs;
 	this->inv_Fs = 1.0 / Fs;
 	this->k_2pi__Fs = 2 * M_PI * this->inv_Fs;
 }
 
-float Filter::process(float in)
+
+FilterBaseClass::~FilterBaseClass() {
+}
+
+float FilterBaseClass::process(float in)
 {
 	for (size_t n = 0; n < numberOfBiquads; n++)
 	{
@@ -15,7 +20,7 @@ float Filter::process(float in)
 	return in;
 }
 
-void Filter::init_biquads(int numberOfBiquads)
+void FilterBaseClass::init_biquads(int numberOfBiquads)
 {
 	for (size_t i = 0; i < numberOfBiquads; i++)
 	{
@@ -25,8 +30,9 @@ void Filter::init_biquads(int numberOfBiquads)
 
 
 
-Path Filter::get_spectrum(Rectangle<int> offset)
+Path FilterBaseClass::get_spectrum(Rectangle<int> offset)
 {
+	spectrum_path.clear();
 	double spectrum[spectrum_length] = { 0 }; // TODO change to vector
 	for (size_t n = 0; n < numberOfBiquads; n++)
 	{
@@ -43,7 +49,7 @@ Path Filter::get_spectrum(Rectangle<int> offset)
 	return spectrum_path;
 }
 
-void Filter::compute_spectrum(std::tuple<double, double, double, double, double> coefs, double * spectrum) {
+void FilterBaseClass::compute_spectrum(std::tuple<double, double, double, double, double> coefs, double * spectrum) {
 	double num[filter_order] = { std::get<2>(coefs),std::get<3>(coefs), std::get<4>(coefs) };
 	double den[filter_order] = { 1, std::get<0>(coefs), std::get<1>(coefs) };
 	//this->spectrum[spectrum_length] = { 0 };
@@ -53,7 +59,7 @@ void Filter::compute_spectrum(std::tuple<double, double, double, double, double>
 	}
 }
 
-std::complex<double> Filter::polyval(double *p, int n, std::complex<double> x)
+std::complex<double> FilterBaseClass::polyval(double *p, int n, std::complex<double> x)
 {
 	if (n < 1) {
 		throw ("filter order must be higher than 0 ", numberOfBiquads);

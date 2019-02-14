@@ -24,7 +24,7 @@ class AFiltersAudioProcessor  : public AudioProcessor
 public:
     //==============================================================================
     AFiltersAudioProcessor();
-    ~AFiltersAudioProcessor();
+    virtual ~AFiltersAudioProcessor();
 
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;

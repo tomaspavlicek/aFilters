@@ -79,6 +79,7 @@ float Filterz::process(float in)
 
 Path Filterz::get_spectrum(Rectangle<int> offset)
 {
+	spectrum_path.clear();
 	for (size_t n = 0; n < numberOfBiquads; n++)
 	{
 		this->compute_spectrum(this->biquads[n].getCoefs());

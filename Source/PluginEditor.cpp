@@ -98,13 +98,13 @@ AFiltersAudioProcessorEditor::AFiltersAudioProcessorEditor (AFiltersAudioProcess
 	setSize(1800, 800);
 	setResizable(true, true);
 	
-	filterz1.setMode(filterTypeCB1.getSelectedItemIndex() - 1);
-	filterz2.setMode(filterTypeCB2.getSelectedItemIndex() - 1);
+	filter1 = &Eq1;
+	filter2 = &Eq2;
 }
 
 AFiltersAudioProcessorEditor::~AFiltersAudioProcessorEditor()
 {
-
+	
 }
 
 //==============================================================================
@@ -138,13 +138,13 @@ void AFiltersAudioProcessorEditor::resized()
 	
 }
 
-void AFiltersAudioProcessorEditor::draw_spect(Graphics& g, Rectangle<int> bounds, Equalizer filterz, Slider* sl11, Slider* sl12, Slider* sl13, Slider* sl21, Slider* sl22, Slider* sl23, Slider* sl31, Slider* sl32, Slider* sl33, Slider* sl41, Slider* sl42, Slider* sl43)
+void AFiltersAudioProcessorEditor::draw_spect(Graphics& g, Rectangle<int> bounds, FilterBaseClass * filterz, Slider* sl11, Slider* sl12, Slider* sl13, Slider* sl21, Slider* sl22, Slider* sl23, Slider* sl31, Slider* sl32, Slider* sl33, Slider* sl41, Slider* sl42, Slider* sl43)
 {
-	filterz.set_biquad(0, sl12->getValue(), sl13->getValue(), sl11->getValue());
-	filterz.set_biquad(1, sl22->getValue(), sl23->getValue(), sl21->getValue());
-	filterz.set_biquad(2, sl32->getValue(), sl33->getValue(), sl31->getValue());
-	filterz.set_biquad(3, sl42->getValue(), sl43->getValue(), sl41->getValue());
-	g.strokePath(filterz.get_spectrum(bounds), PathStrokeType(4));
+	filterz->set_filter(0, sl12->getValue(), sl13->getValue(), sl11->getValue());
+	filterz->set_filter(1, sl22->getValue(), sl23->getValue(), sl21->getValue());
+	filterz->set_filter(2, sl32->getValue(), sl33->getValue(), sl31->getValue());
+	filterz->set_filter(3, sl42->getValue(), sl43->getValue(), sl41->getValue());
+	g.strokePath(filterz->get_spectrum(bounds), PathStrokeType(4));
 }
 
 void AFiltersAudioProcessorEditor::sliderValueChanged(Slider* slider)
@@ -154,30 +154,46 @@ void AFiltersAudioProcessorEditor::sliderValueChanged(Slider* slider)
 
 void AFiltersAudioProcessorEditor::buttonClicked(Button * butt)
 {
-	if (butt == &filterTypeButt1 && fabs(s_cross.getValue() - 1.0) < 0.0001)
+	if (butt == &filterTypeButt1 && fabs(1.0 - s_cross.getValue()) < 0.0001)
 	{
 		filterTypeLabel1.setText(filterTypeCB1.getText(), sendNotificationAsync);
-		filterz1.setMode(filterTypeCB1.getSelectedItemIndex()-1);
+		setFilterTypes();
 	}
 
 	if (butt == &filterTypeButt2 && s_cross.getValue() < 0.0001)
 	{
 		filterTypeLabel2.setText(filterTypeCB2.getText(), sendNotificationAsync);
-		filterz2.setMode(1);
-		//s11.setVisible(false);
-		//NormalisableRange<float> r = NormalisableRange<float>(1.1f, 2.0f, 0.01f, 0.2, false);
-		//s53.setRange(1.1f, 2.0f);
-		repaint();
+		setFilterTypes();
 	}
-
+	repaint();
+	
 }
+
+void AFiltersAudioProcessorEditor::setFilterTypes()
+{
+
+	if (filterTypeCB1.getSelectedItemIndex() == 1) {
+		filter1 = &LF1;
+	} else {
+		filter1 = &Eq1;
+	}
+	filter1->set_sliders(&s11, &s12, &s13, &s21, &s22, &s23, &s31, &s32, &s33, &s41, &s42, &s43);
+	if (filterTypeCB2.getSelectedItemIndex() == 1) {
+		filter2 = &LF2;
+	}
+	else {
+		filter2 = &Eq2;
+		
+	}
+	filter2->set_sliders(&s51, &s52, &s53, &s61, &s62, &s63, &s71, &s72, &s73, &s81, &s82, &s83);
+}
+
 
 void AFiltersAudioProcessorEditor::setupFilterTypeCB(ComboBox* comboBox)
 {
 	comboBox->addItem("Equalizer", 1);
 	comboBox->addItem("Linked", 2);
 	comboBox->setSelectedId(1);
-
 }
 
 Rectangle<int> AFiltersAudioProcessorEditor::set_filter_bounds(Rectangle<int> area, Slider* s1, Slider* s2, Slider* s3, Slider* s4, Slider* s5, Slider* s6, Slider* s7, Slider* s8, Slider* s9, Slider* s10, Slider* s11, Slider* s12)
