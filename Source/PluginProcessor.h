@@ -14,6 +14,9 @@
 #include "Biquad.h"
 #include "MidiHandl.h"
 #include <unordered_map>
+#include "Filter.h"
+#include "Equalizer.h"
+#include "LinkedFilter.h"
 
 
 //==============================================================================
@@ -60,11 +63,23 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
 private:
-	const int number_of_filters = 8;
+	const int number_of_filters = 2;
 	AudioProcessorValueTreeState parameters;
-	std::vector<Biquad> filtereenos;
+	std::vector<FilterBaseClass*> filtereenos;
+	std::vector<Equalizer*> eqs1;
+	std::vector<Equalizer*> eqs2;
+	std::vector<LinkedFilter*> lfs1;
+	std::vector<LinkedFilter*> lfs2;
+
 	float tmp;
 	float in;
+	int Fs = 48000;
+	Equalizer Eq1 = Equalizer(Fs);
+	Equalizer Eq2 = Equalizer(Fs);
+	LinkedFilter LF1 = LinkedFilter(Fs);
+	LinkedFilter LF2 = LinkedFilter(Fs);
+	FilterBaseClass * filter1;
+	FilterBaseClass * filter2;
 	MidiHandl mh;
 	std::unordered_map<int, String> midi_cc;
     //==============================================================================

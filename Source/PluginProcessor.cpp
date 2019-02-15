@@ -61,22 +61,26 @@ AFiltersAudioProcessor::AFiltersAudioProcessor()
 	parameters.createAndAddParameter("sl63", "Sl63", "", qnr, 1 / sqrt(2), nullptr, nullptr);
 	parameters.createAndAddParameter("sl73", "Sl73", "", qnr, 1 / sqrt(2), nullptr, nullptr);
 	parameters.createAndAddParameter("sl83", "Sl83", "", qnr, 1 / sqrt(2), nullptr, nullptr);
+	parameters.createAndAddParameter("switch1", "Switch1", "", NormalisableRange<float>(0.0, 1.0, 1.0), 0.0, nullptr, nullptr);
+	parameters.createAndAddParameter("switch2", "Switch2", "", NormalisableRange<float>(0.0, 1.0, 1.0), 0.0, nullptr, nullptr);
 	parameters.state = ValueTree(Identifier("aFiltersVT"));
 
 	mh = MidiHandl(&parameters);
 	midi_cc[76] = "sl11";
 	midi_cc[77] = "sl12";
 
-
+	//Fs = getSampleRate();
 	for (size_t i = 0; i < getTotalNumInputChannels(); i++)
 	{
-		for (size_t i = 0; i < 8; i++)
+		for (size_t j = 0; j < number_of_filters; j++)
 		{
-			filtereenos.push_back(Biquad());
+			eqs1.push_back(new Equalizer(Fs));
+			eqs2.push_back(new Equalizer(Fs));
+			lfs1.push_back(new LinkedFilter(Fs));
+			lfs2.push_back(new LinkedFilter(Fs));
+			filtereenos.push_back(&Equalizer(Fs));
 		}
 	}
-
-
 }
 
 AFiltersAudioProcessor::~AFiltersAudioProcessor()
@@ -198,18 +202,30 @@ void AFiltersAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
 			}
 		}
 	}
-	const int Fs = getSampleRate();
+	const int Fss = getSampleRate();
 	for (size_t i = 0; i < getNumInputChannels(); i++)
 	{
 		int filter_offset = i* number_of_filters;
-		filtereenos[filter_offset].setBiquad(bq_type_lowshelf, *parameters.getRawParameterValue("sl12") / Fs, *parameters.getRawParameterValue("sl13"), *parameters.getRawParameterValue("sl11"));
-		filtereenos[filter_offset + 1].setBiquad(bq_type_peak, *parameters.getRawParameterValue("sl22") / Fs, *parameters.getRawParameterValue("sl23"), *parameters.getRawParameterValue("sl21"));
-		filtereenos[filter_offset + 2].setBiquad(bq_type_peak, *parameters.getRawParameterValue("sl32") / Fs, *parameters.getRawParameterValue("sl33"), *parameters.getRawParameterValue("sl31"));
-		filtereenos[filter_offset + 3].setBiquad(bq_type_highshelf, *parameters.getRawParameterValue("sl42") / Fs, *parameters.getRawParameterValue("sl43"), *parameters.getRawParameterValue("sl41"));
-		filtereenos[filter_offset + 4].setBiquad(bq_type_lowshelf, *parameters.getRawParameterValue("sl52") / Fs, *parameters.getRawParameterValue("sl53"), *parameters.getRawParameterValue("sl51"));
-		filtereenos[filter_offset + 5].setBiquad(bq_type_peak, *parameters.getRawParameterValue("sl62") / Fs, *parameters.getRawParameterValue("sl63"), *parameters.getRawParameterValue("sl61"));
-		filtereenos[filter_offset + 6].setBiquad(bq_type_peak, *parameters.getRawParameterValue("sl72") / Fs, *parameters.getRawParameterValue("sl73"), *parameters.getRawParameterValue("sl71"));
-		filtereenos[filter_offset + 7].setBiquad(bq_type_highpass, *parameters.getRawParameterValue("sl82") / Fs, *parameters.getRawParameterValue("sl83"), *parameters.getRawParameterValue("sl81"));
+		if (*parameters.getRawParameterValue("switch1") < 0.5) {
+			filtereenos[filter_offset] = eqs1[filter_offset];
+		}
+		else {
+			filtereenos[filter_offset] = lfs1[filter_offset];
+		}
+		filtereenos[filter_offset]->set_filter(0, *parameters.getRawParameterValue("sl12") , *parameters.getRawParameterValue("sl13"), *parameters.getRawParameterValue("sl11"));
+		filtereenos[filter_offset]->set_filter(1, *parameters.getRawParameterValue("sl22") , *parameters.getRawParameterValue("sl23"), *parameters.getRawParameterValue("sl21"));
+		filtereenos[filter_offset]->set_filter(2, *parameters.getRawParameterValue("sl32") , *parameters.getRawParameterValue("sl33"), *parameters.getRawParameterValue("sl31"));
+		filtereenos[filter_offset]->set_filter(3, *parameters.getRawParameterValue("sl42") , *parameters.getRawParameterValue("sl43"), *parameters.getRawParameterValue("sl41"));
+		if (*parameters.getRawParameterValue("switch2") < 0.5) {
+			filtereenos[filter_offset+1] = eqs2[filter_offset+1];
+		}
+		else {
+			filtereenos[filter_offset+1] = lfs2[filter_offset+1];
+		}
+		filtereenos[filter_offset + 1]->set_filter(0, *parameters.getRawParameterValue("sl52") , *parameters.getRawParameterValue("sl53"), *parameters.getRawParameterValue("sl51"));
+		filtereenos[filter_offset + 1]->set_filter(1, *parameters.getRawParameterValue("sl62") , *parameters.getRawParameterValue("sl63"), *parameters.getRawParameterValue("sl61"));
+		filtereenos[filter_offset + 1]->set_filter(2, *parameters.getRawParameterValue("sl72") , *parameters.getRawParameterValue("sl73"), *parameters.getRawParameterValue("sl71"));
+		filtereenos[filter_offset + 1]->set_filter(3, *parameters.getRawParameterValue("sl82") , *parameters.getRawParameterValue("sl83"), *parameters.getRawParameterValue("sl81"));
 	}
 	float fw1 = *parameters.getRawParameterValue("s_first");
 	float fw2 = *parameters.getRawParameterValue("s_second");
@@ -244,14 +260,8 @@ void AFiltersAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
 		for (int sample = 0; sample < buffer.getNumSamples(); ++sample) {
 			in = buffer.getSample(channel, sample);
 			tmp = dry * in;
-			tmp += wetf1 * filtereenos[filter_offset].process(in);
-			tmp += wetf1 * filtereenos[filter_offset + 1].process(in);
-			tmp += wetf1 * filtereenos[filter_offset + 2].process(in);
-			tmp += wetf1 * filtereenos[filter_offset + 3].process(in);
-			tmp += wetf2 * filtereenos[filter_offset + 4].process(in);
-			tmp += wetf2 * filtereenos[filter_offset + 5].process(in);
-			tmp += wetf2 * filtereenos[filter_offset + 6].process(in);
-			tmp += wetf2 * filtereenos[filter_offset + 7].process(in);
+			tmp += wetf1 * filtereenos[filter_offset]->process(in);
+			tmp += wetf2 * filtereenos[filter_offset + 1]->process(in);
 			buffer.setSample(channel, sample, tmp);
 		}
         

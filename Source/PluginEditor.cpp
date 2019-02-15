@@ -151,21 +151,25 @@ void AFiltersAudioProcessorEditor::buttonClicked(Button * butt)
 		filter1TypeButton1.setAlpha(1);
 		filter1TypeButton2.setAlpha(0.5);
 		filter1->set_sliders(&s11, &s12, &s13, &s21, &s22, &s23, &s31, &s32, &s33, &s41, &s42, &s43);
+		this->valueTreeState.getParameter("switch1")->setValue(0.0);
 	} else if (butt == &filter1TypeButton2 && (1.0 - s_cross.getValue()) < max_xthreshold) {
 		filter1 = &LF1;
 		filter1TypeButton1.setAlpha(0.5);
 		filter1TypeButton2.setAlpha(1);
 		filter1->set_sliders(&s11, &s12, &s13, &s21, &s22, &s23, &s31, &s32, &s33, &s41, &s42, &s43);
+		this->valueTreeState.getParameter("switch1")->setValue(1.0);
 	} else if (butt == &filter2TypeButton1 && s_cross.getValue() < max_xthreshold) {
 		filter2 = &Eq2;
 		filter2TypeButton1.setAlpha(1);
 		filter2TypeButton2.setAlpha(0.5);
 		filter2->set_sliders(&s51, &s52, &s53, &s61, &s62, &s63, &s71, &s72, &s73, &s81, &s82, &s83);
+		this->valueTreeState.getParameter("switch2")->setValue(1.0);
 	} else if (butt == &filter2TypeButton2 && s_cross.getValue() < max_xthreshold) {
 		filter2 = &LF2;
 		filter2TypeButton1.setAlpha(0.5);
 		filter2TypeButton2.setAlpha(1);
 		filter2->set_sliders(&s51, &s52, &s53, &s61, &s62, &s63, &s71, &s72, &s73, &s81, &s82, &s83);
+		this->valueTreeState.getParameter("switch2")->setValue(1.0);
 	}
 	repaint();
 }
