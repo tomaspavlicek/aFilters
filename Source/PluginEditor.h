@@ -112,13 +112,6 @@ private:
 	std::unique_ptr<SliderAttachment> sa_first;
 	std::unique_ptr<SliderAttachment> sa_second;
 
-	Label filterTypeLabel1;
-	Label filterTypeLabel2;
-	ComboBox filterTypeCB1;
-	ComboBox filterTypeCB2;
-	TextButton filterTypeButt1;
-	TextButton filterTypeButt2;
-
 	TextButton filter1TypeButton1{"Equalizer"}, filter1TypeButton2{"LinkedFilter"};
 	TextButton filter2TypeButton1{"Equalizer"}, filter2TypeButton2{"LinkedFilter"};
 	float max_xthreshold = 0.0001;
