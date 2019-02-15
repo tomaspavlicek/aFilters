@@ -14,6 +14,11 @@
 #include <math.h>
 #include <iostream>
 
+enum ToggleButtonIds
+{
+	Filter1Buttons = 1001,
+	Filter2Buttons = 1002
+};
 
 
 
@@ -60,6 +65,21 @@ AFiltersAudioProcessorEditor::AFiltersAudioProcessorEditor (AFiltersAudioProcess
 	filterTypeButt2.setButtonText("Apply");
 	filterTypeButt1.onClick = [this] { buttonClicked(&filterTypeButt1); };
 	filterTypeButt2.onClick = [this] { buttonClicked(&filterTypeButt2); };
+	//filter1TypeButton1.setClickingTogglesState(true);
+	//filter1TypeButton2.setClickingTogglesState(true);
+
+	//filter1TypeButton1.setRadioGroupId(Filter1Buttons);
+	//filter1TypeButton2.setRadioGroupId(Filter1Buttons);
+	filter1TypeButton1.setToggleState(true, "");
+	//filter2TypeButton1.setClickingTogglesState(true);
+	//filter2TypeButton2.setClickingTogglesState(true);
+	filter2TypeButton1.setToggleState(true, "");
+	//filter2TypeButton1.setRadioGroupId(Filter2Buttons);
+	//filter2TypeButton2.setRadioGroupId(Filter2Buttons);
+	filter1TypeButton1.onClick = [this] { buttonClicked(&filter1TypeButton1); };
+	filter1TypeButton2.onClick = [this] { buttonClicked(&filter1TypeButton2); };
+	filter2TypeButton1.onClick = [this] { buttonClicked(&filter2TypeButton1); };
+	filter2TypeButton2.onClick = [this] { buttonClicked(&filter2TypeButton2); };
 
 	addAndMakeVisible(&s11);
 	addAndMakeVisible(&s12);
@@ -94,6 +114,10 @@ AFiltersAudioProcessorEditor::AFiltersAudioProcessorEditor (AFiltersAudioProcess
 	addAndMakeVisible(&filterTypeCB2);
 	addAndMakeVisible(&filterTypeButt1);
 	addAndMakeVisible(&filterTypeButt2);
+	addAndMakeVisible(&filter1TypeButton1);
+	addAndMakeVisible(&filter1TypeButton2);
+	addAndMakeVisible(&filter2TypeButton1);
+	addAndMakeVisible(&filter2TypeButton2);
 
 	setSize(1800, 800);
 	setResizable(true, true);
@@ -126,7 +150,11 @@ void AFiltersAudioProcessorEditor::resized()
 	filterTypeLabel1.setBounds(xarea.removeFromTop(tbh));
 	filterTypeCB1.setBounds(xarea.removeFromTop(tbh));
 	filterTypeButt1.setBounds(xarea.removeFromTop(tbh));
+	filter1TypeButton1.setBounds(xarea.removeFromTop(tbh));
+	filter1TypeButton2.setBounds(xarea.removeFromTop(tbh));
 	s_cross.setBounds(xarea.removeFromTop(xarea.getHeight()-3*tbh));
+	filter2TypeButton1.setBounds(xarea.removeFromTop(tbh));
+	filter2TypeButton2.setBounds(xarea.removeFromTop(tbh));
 	filterTypeButt2.setBounds(xarea.removeFromTop(tbh));
 	filterTypeCB2.setBounds(xarea.removeFromTop(tbh));
 	filterTypeLabel2.setBounds(xarea);
@@ -135,7 +163,6 @@ void AFiltersAudioProcessorEditor::resized()
 	s_second.setBounds(weight_sliders_area);
 	spect1_offset = set_filter_bounds(area.removeFromTop(area.getHeight() / 2), &s11, &s12, &s13, &s21, &s22, &s23, &s31, &s32, &s33, &s41, &s42, &s43);
 	spect2_offset = set_filter_bounds(area, &s51, &s52, &s53, &s61, &s62, &s63, &s71, &s72, &s73, &s81, &s82, &s83);
-	
 }
 
 void AFiltersAudioProcessorEditor::draw_spect(Graphics& g, Rectangle<int> bounds, FilterBaseClass * filterz, Slider* sl11, Slider* sl12, Slider* sl13, Slider* sl21, Slider* sl22, Slider* sl23, Slider* sl31, Slider* sl32, Slider* sl33, Slider* sl41, Slider* sl42, Slider* sl43)
@@ -154,40 +181,29 @@ void AFiltersAudioProcessorEditor::sliderValueChanged(Slider* slider)
 
 void AFiltersAudioProcessorEditor::buttonClicked(Button * butt)
 {
-	if (butt == &filterTypeButt1 && fabs(1.0 - s_cross.getValue()) < 0.0001)
-	{
-		filterTypeLabel1.setText(filterTypeCB1.getText(), sendNotificationAsync);
-		setFilterTypes();
-	}
-
-	if (butt == &filterTypeButt2 && s_cross.getValue() < 0.0001)
-	{
-		filterTypeLabel2.setText(filterTypeCB2.getText(), sendNotificationAsync);
-		setFilterTypes();
+	if (butt == &filter1TypeButton1 && (1.0 - s_cross.getValue()) < max_xthreshold) {
+		filter1 = &Eq1;
+		filter1TypeButton1.setAlpha(1);
+		filter1TypeButton2.setAlpha(0.5);
+		filter1->set_sliders(&s11, &s12, &s13, &s21, &s22, &s23, &s31, &s32, &s33, &s41, &s42, &s43);
+	} else if (butt == &filter1TypeButton2 && (1.0 - s_cross.getValue()) < max_xthreshold) {
+		filter1 = &LF1;
+		filter1TypeButton1.setAlpha(0.5);
+		filter1TypeButton2.setAlpha(1);
+		filter1->set_sliders(&s11, &s12, &s13, &s21, &s22, &s23, &s31, &s32, &s33, &s41, &s42, &s43);
+	} else if (butt == &filter2TypeButton1 && s_cross.getValue() < max_xthreshold) {
+		filter2 = &Eq2;
+		filter2TypeButton1.setAlpha(1);
+		filter2TypeButton2.setAlpha(0.5);
+		filter2->set_sliders(&s51, &s52, &s53, &s61, &s62, &s63, &s71, &s72, &s73, &s81, &s82, &s83);
+	} else if (butt == &filter2TypeButton2 && s_cross.getValue() < max_xthreshold) {
+		filter2 = &LF2;
+		filter2TypeButton1.setAlpha(0.5);
+		filter2TypeButton2.setAlpha(1);
+		filter2->set_sliders(&s51, &s52, &s53, &s61, &s62, &s63, &s71, &s72, &s73, &s81, &s82, &s83);
 	}
 	repaint();
-	
 }
-
-void AFiltersAudioProcessorEditor::setFilterTypes()
-{
-
-	if (filterTypeCB1.getSelectedItemIndex() == 1) {
-		filter1 = &LF1;
-	} else {
-		filter1 = &Eq1;
-	}
-	filter1->set_sliders(&s11, &s12, &s13, &s21, &s22, &s23, &s31, &s32, &s33, &s41, &s42, &s43);
-	if (filterTypeCB2.getSelectedItemIndex() == 1) {
-		filter2 = &LF2;
-	}
-	else {
-		filter2 = &Eq2;
-		
-	}
-	filter2->set_sliders(&s51, &s52, &s53, &s61, &s62, &s63, &s71, &s72, &s73, &s81, &s82, &s83);
-}
-
 
 void AFiltersAudioProcessorEditor::setupFilterTypeCB(ComboBox* comboBox)
 {

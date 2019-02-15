@@ -119,6 +119,10 @@ private:
 	TextButton filterTypeButt1;
 	TextButton filterTypeButt2;
 
+	TextButton filter1TypeButton1{"Equalizer"}, filter1TypeButton2{"LinkedFilter"};
+	TextButton filter2TypeButton1{"Equalizer"}, filter2TypeButton2{"LinkedFilter"};
+	float max_xthreshold = 0.0001;
+
 	void buttonClicked(Button* butt);
 	void setFilterTypes();
 

@@ -28,6 +28,7 @@ protected:
 	void compute_spectrum(std::tuple<double, double, double, double, double> coefs, double * spectrum);
 	std::complex<double> polyval(double *p, int n, std::complex<double> x);
 	int Fs;
+	int Fs__2;
 	double inv_Fs;
 	double k_2pi__Fs;
 	FrequencyVector freqVec;

@@ -4,6 +4,7 @@ FilterBaseClass::FilterBaseClass(int Fs):freqVec(spectrum_length, 20, 20000)
 {
 	this->Fs = Fs;
 	this->inv_Fs = 1.0 / Fs;
+	this->Fs__2 = floor(Fs / 2);
 	this->k_2pi__Fs = 2 * M_PI * this->inv_Fs;
 }
 
